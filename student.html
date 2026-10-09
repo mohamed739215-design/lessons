@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#2563eb">
+    <title>صفحة متابعة الطالب</title>
+    <link rel="icon" href="app-icon-192.png" type="image/png">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="vendor/fontawesome.min.css">
+    <script src="grade-mapping.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+            background: var(--bg-light);
+            min-height: 100vh;
+            padding: 1.2rem;
+        }
+
+        .track-wrap { max-width: 640px; margin: 0 auto; }
+
+        .track-header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: #fff;
+            border-radius: var(--radius-xl, 16px);
+            padding: 1.6rem 1.4rem;
+            box-shadow: var(--shadow-royal);
+            text-align: center;
+            margin-bottom: 1.2rem;
+        }
+        .track-header .brand { font-size: .85rem; opacity: .85; margin-bottom: .3rem; }
+        .track-header h1 { font-size: 1.4rem; margin: 0 0 .3rem; }
+        .track-header .sub { font-size: .9rem; opacity: .9; }
+
+        .track-card {
+            background: #fff;
+            border-radius: var(--radius-xl, 16px);
+            box-shadow: var(--shadow-sm);
+            padding: 1.2rem 1.3rem;
+            margin-bottom: 1rem;
+        }
+        .track-card h2 {
+            font-size: 1rem;
+            color: var(--primary);
+            margin: 0 0 .9rem;
+            display: flex; align-items: center; gap: 8px;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: .8rem;
+        }
+        .stat-box {
+            background: var(--bg-light);
+            border-radius: 12px;
+            padding: .9rem;
+            text-align: center;
+        }
+        .stat-box .num { font-size: 1.4rem; font-weight: 800; color: var(--primary); }
+        .stat-box .lbl { font-size: .78rem; color: var(--text-muted); margin-top: .2rem; }
+
+        .row { display: flex; justify-content: space-between; align-items: center; padding: .55rem 0; border-bottom: 1px dashed var(--border, #e5e7eb); font-size: .92rem; }
+        .row:last-child { border-bottom: none; }
+        .row .k { color: var(--text-muted); }
+        .row .v { font-weight: 700; }
+
+        .badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 99px; font-weight: 700; font-size: .8rem; }
+        .badge.ok { background: #dcfce7; color: #166534; }
+        .badge.bad { background: #fee2e2; color: #991b1b; }
+        .badge.warn { background: #fff7ed; color: #c2410c; }
+
+        .notes-box { background: var(--bg-light); border-radius: 12px; padding: .9rem; font-size: .9rem; line-height: 1.8; color: var(--text-main, #1f2937); min-height: 50px; }
+
+        .state-msg { text-align: center; padding: 3rem 1rem; color: var(--text-muted); }
+        .state-msg i { font-size: 2.4rem; color: var(--primary-light); margin-bottom: 1rem; display: block; }
+
+        .footer-note { text-align: center; font-size: .75rem; color: var(--text-muted); margin-top: 1.5rem; }
+    </style>
+</head>
+
+<body>
+    <div class="track-wrap" id="app-root">
+        <div class="state-msg" id="loading-state">
+            <i class="fas fa-circle-notch fa-spin"></i>
+            جاري تحميل بيانات الطالب...
+        </div>
+    </div>
+
+    <!-- Firebase SDK (Compat Version) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        // ============================================================
+        //  student.html — صفحة متابعة ولي الأمر / الطالب
+        // ============================================================
+        const firebaseConfig = {
+          apiKey: "AIzaSyBpEyl2yKbUPf8NQpsGLVISNzno1qJAedI",
+          authDomain: "syfather.firebaseapp.com",
+          projectId: "syfather",
+          storageBucket: "syfather.firebasestorage.app",
+          messagingSenderId: "929000000845",
+          appId: "1:929000000845:web:78407e4aafc771b7cafb04",
+          measurementId: "G-7BES6YHQQR"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const firebaseDB = firebase.firestore();
+
+        // ── نقطة الربط مع Firebase ──────────────────────
+        async function fetchStudentTrackingData(code) {
+            try {
+                // 1. Fetch student by qrCode
+                const studentSnap = await firebaseDB.collection('students')
+                    .where('qrCode', '==', String(code))
+                    .limit(1)
+                    .get();
+                
+                if (studentSnap.empty) {
+                    console.warn('No student found with QR code:', code);
+                    return null;
+                }
+                const studentDoc = studentSnap.docs[0];
+                const student = studentDoc.data();
+                
+                // 2. Fetch group
+                let group = null;
+                if (student.groupId) {
+                    const groupDoc = await firebaseDB.collection('groups').doc(String(student.groupId)).get();
+                    if (groupDoc.exists) {
+                        group = groupDoc.data();
+                    }
+                }
+                
+                // 3. Fetch attendance
+                const attendanceSnap = await firebaseDB.collection('attendance')
+                    .where('studentId', '==', String(student.id))
+                    .get();
+                const atts = attendanceSnap.docs.map(doc => doc.data());
+                
+                // 4. Fetch payments
+                const paymentsSnap = await firebaseDB.collection('payments')
+                    .where('studentId', '==', String(student.id))
+                    .get();
+                const pmts = paymentsSnap.docs.map(doc => doc.data());
+                
+                // 5. Calculations
+                const presentDays = atts.filter(a => a.status === 'present').length;
+                const absentDays = atts.filter(a => a.status === 'absent').length;
+
+                const today = new Date().toLocaleDateString('en-CA');
+                const todayAtt = atts.find(a => new Date(a.date).toLocaleDateString('en-CA') === today);
+
+                const studentPayments = pmts
+                    .filter(p => p.category === 'اشتراك شهري')
+                    .sort((a, b) => new Date(b.date) - new Date(a.date));
+                const lastPayment = studentPayments[0] || null;
+
+                return { student, group, presentDays, absentDays, todayAtt, lastPayment };
+            } catch (e) {
+                console.error('fetchStudentTrackingData error:', e);
+                return null;
+            }
+        }
+
+        function attendanceBadge(todayAtt) {
+            if (!todayAtt) return `<span class="badge warn"><i class="fas fa-clock"></i> لم يُسجَّل بعد اليوم</span>`;
+            if (todayAtt.status === 'present') return `<span class="badge ok"><i class="fas fa-check"></i> حاضر اليوم</span>`;
+            return `<span class="badge bad"><i class="fas fa-times"></i> غائب اليوم</span>`;
+        }
+
+        function subscriptionBadge(lastPayment) {
+            if (!lastPayment) return `<span class="badge bad"><i class="fas fa-times-circle"></i> غير مدفوع</span>`;
+            return `<span class="badge ok"><i class="fas fa-check-circle"></i> مدفوع</span>`;
+        }
+
+        function render(data) {
+            const root = document.getElementById('app-root');
+            if (!data) {
+                root.innerHTML = `
+                    <div class="track-header">
+                        <div class="brand">نظام إدارة الدروس</div>
+                        <h1>صفحة متابعة الطالب</h1>
+                    </div>
+                    <div class="track-card state-msg">
+                        <i class="fas fa-plug"></i>
+                        لا يمكن عرض بيانات هذا الطالب من هذا الجهاز حالياً.<br>
+                        سيتم تفعيل العرض الفوري لهذه الصفحة من أي جهاز فور ربط النظام بقاعدة البيانات السحابية.
+                    </div>`;
+                return;
+            }
+
+            const { student: s, group: g, presentDays, absentDays, todayAtt, lastPayment } = data;
+            const grade = (typeof gradeLabel === 'function') ? gradeLabel(s.grade) : (s.grade || '---');
+            const group = g ? g.name : 'بدون مجموعة';
+            const lastPaymentDate = lastPayment ? new Date(lastPayment.date).toLocaleDateString('ar-EG') : '---';
+
+            root.innerHTML = `
+                <div class="track-header">
+                    <div class="brand"><i class="fas fa-graduation-cap"></i> نظام إدارة الدروس</div>
+                    <h1>${s.name}</h1>
+                    <div class="sub">${grade} — ${group}</div>
+                </div>
+
+                <div class="track-card">
+                    <h2><i class="fas fa-calendar-check"></i> الحضور</h2>
+                    <div class="stat-grid">
+                        <div class="stat-box"><div class="num">${presentDays}</div><div class="lbl">أيام الحضور</div></div>
+                        <div class="stat-box"><div class="num">${absentDays}</div><div class="lbl">أيام الغياب</div></div>
+                    </div>
+                    <div style="margin-top:.9rem; text-align:center;">${attendanceBadge(todayAtt)}</div>
+                </div>
+
+                <div class="track-card">
+                    <h2><i class="fas fa-wallet"></i> الاشتراك الشهري</h2>
+                    <div class="row"><span class="k">الحالة</span><span class="v">${subscriptionBadge(lastPayment)}</span></div>
+                    <div class="row"><span class="k">آخر عملية سداد</span><span class="v">${lastPaymentDate}</span></div>
+                </div>
+
+                <div class="track-card">
+                    <h2><i class="fas fa-star"></i> تقييم الأداء</h2>
+                    <div class="row"><span class="k">نقاط الأداء</span><span class="v">${s.points || 0} 💎</span></div>
+                </div>
+
+                <div class="track-card">
+                    <h2><i class="fas fa-comment-dots"></i> ملاحظات المدرس</h2>
+                    <div class="notes-box">${s.teacherNotes ? s.teacherNotes : 'لا توجد ملاحظات جديدة حالياً.'}</div>
+                </div>
+
+                <div class="footer-note">كود المتابعة: ${s.qrCode}</div>
+            `;
+        }
+
+        (async function init() {
+            const params = new URLSearchParams(window.location.search);
+            const code = params.get('id');
+            if (!code) { render(null); return; }
+            const data = await fetchStudentTrackingData(code);
+            render(data);
+        })();
+    </script>
+</body>
+
+</html>
