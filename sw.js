@@ -9,14 +9,13 @@
 //    5. أو: يُطبَّق تلقائياً بعد 10 ثوانٍ بدون تدخّل
 // ============================================================
 
-const CACHE_VERSION = 'edarat-eldroos-pwa-v25';
+const CACHE_VERSION = 'edarat-eldroos-pwa-v24';
 
 const APP_SHELL = [
   './',
   './index.html',
   './style.css',
   './app.js',
-  './teacher.png',
   './archive_functions.js',
   './platform-subscriptions.js',
   './transfer-student.js',
@@ -27,6 +26,7 @@ const APP_SHELL = [
   './app-icon-512.png',
   './app-icon-maskable-512.png',
   './apple-touch-icon.png',
+  './teacher.png',
   // ✅ كل المكتبات بقت محلية بالكامل (مش CDN) — بقيت جزء من الـ App Shell
   // العادي بدل قائمة EXTERNAL_LIBS المنفصلة اللي كانت بتعتمد على الإنترنت
   './chart.umd.js',
