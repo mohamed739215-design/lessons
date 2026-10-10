@@ -6081,7 +6081,7 @@ function processScan(token) {
             msg.lang = 'ar-SA';
             window.speechSynthesis.speak(msg);
         }
-        openSmartCard(student.id, 2000);
+        openSmartCard(student.id, 20000);
         return;
     }
 
@@ -6160,7 +6160,7 @@ function processScan(token) {
     }
 
     // 7. Open Smart Card UI for scan feedback, then return automatically to the scanner.
-    openSmartCard(student.id, 2000);
+    openSmartCard(student.id, 20000);
 
     // Voice Feedback
     playSound('success');
@@ -6250,6 +6250,49 @@ function searchStudentSmart(query) {
 
 let smartCardAutoCloseTimer = null;
 
+// ── إحصاء حصص الدورة النشطة (للقراءة فقط — لا يعدّل أي بيانات) ──
+const CYCLE_SESSIONS_TOTAL = 8;
+function getCycleSessionStats(student) {
+    try {
+        if (!student || !db.settings || !db.settings.activeCycle) return null;
+        const startRaw = db.settings.cycleStartDate || Number(db.settings.activeCycle);
+        const startDay = new Date(startRaw).toLocaleDateString('en-CA');
+        if (!startDay || startDay === 'Invalid Date') return null;
+        const gid = String(student.groupId);
+        const inCycle = (d) => {
+            const day = new Date(d).toLocaleDateString('en-CA');
+            return day !== 'Invalid Date' && day >= startDay ? day : null;
+        };
+        const groupDays = new Set();
+        const studentDays = new Set();
+        (db.attendance || []).forEach(a => {
+            if (a.status && a.status !== 'present') return;
+            const day = inCycle(a.date);
+            if (!day) return;
+            if (String(a.groupId) === gid) groupDays.add(day);
+            if (String(a.studentId) === String(student.id)) studentDays.add(day);
+        });
+        (db.absenceSessions || []).forEach(sess => {
+            if (String(sess.groupId) !== gid) return;
+            const day = inCycle(sess.date);
+            if (day) groupDays.add(day);
+        });
+        // حضور الطالب يُحسب دائماً ضمن أيام حصص المجموعة
+        studentDays.forEach(d => groupDays.add(d));
+        const total = CYCLE_SESSIONS_TOTAL;
+        const held = groupDays.size;
+        return {
+            total,
+            sessionNo: Math.min(held, total),
+            attended: Math.min(studentDays.size, total),
+            completed: held >= total
+        };
+    } catch (e) {
+        console.warn('getCycleSessionStats failed', e);
+        return null;
+    }
+}
+
 function openSmartCard(studentId, autoCloseMs = 0) {
     const s = db.students.find(x => x.id == studentId);
     if (!s) return;
@@ -6293,6 +6336,7 @@ function openSmartCard(studentId, autoCloseMs = 0) {
     const container = document.getElementById('smart-card-content');
     if (!container) return;
 
+    const _cs = getCycleSessionStats(s);
     container.innerHTML = `
         <div style="text-align: center; padding: 0.5rem;">
             <div class="avatar" style="width: 100px; height: 100px; font-size: 3rem; margin: 0 auto 1rem; background: var(--bg-hover); color: var(--accent); border: 2px solid var(--accent);">
@@ -6314,6 +6358,22 @@ function openSmartCard(studentId, autoCloseMs = 0) {
                     <div style="font-weight:700; color:${isPaid ? (isExemption ? 'var(--text-muted)' : 'var(--accent)') : 'var(--danger)'}">${isPaid ? (isExemption ? 'معفي ✅' : 'خالص ✅') : 'غير خالص ⏳'}</div>
                 </div>
             </div>
+
+            ${_cs ? `
+            <div class="card" style="padding:0.8rem 1rem; margin-bottom:1.5rem; border:2px solid ${_cs.completed ? 'var(--danger)' : 'var(--primary)'};">
+                <div style="display:flex; align-items:center; justify-content:space-around; gap:10px; text-align:center;">
+                    <div>
+                        <small style="color:var(--text-muted)">الحصة الحالية</small>
+                        <div style="font-weight:800; font-size:1.5rem; color:var(--primary);">${_cs.sessionNo} <span style="font-size:0.9rem; color:var(--text-muted); font-weight:700;">من ${_cs.total}</span></div>
+                    </div>
+                    <div style="width:1px; align-self:stretch; background:var(--border);"></div>
+                    <div>
+                        <small style="color:var(--text-muted)">حضرها الطالب</small>
+                        <div style="font-weight:800; font-size:1.5rem; color:var(--accent);">${_cs.attended} <span style="font-size:0.9rem; color:var(--text-muted); font-weight:700;">من ${_cs.total}</span></div>
+                    </div>
+                </div>
+                ${_cs.completed ? '<div style="margin-top:0.5rem; font-size:0.85rem; font-weight:700; color:var(--danger);">الشهر مكتمل — فعّل شهرًا جديدًا من الخزينة والمالية</div>' : ''}
+            </div>` : ''}
 
             <!-- Quick Action Buttons -->
             <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 1rem;">
@@ -6390,7 +6450,7 @@ function openSmartCard(studentId, autoCloseMs = 0) {
                 overlayNow.setAttribute('aria-hidden', 'true');
             }
             smartCardAutoCloseTimer = null;
-        }, Math.max(1800, Math.min(Number(autoCloseMs) || 2000, 2200)));
+        }, Math.max(1800, Math.min(Number(autoCloseMs) || 2000, 20000)));
     }
 }
 
