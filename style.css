@@ -1739,3 +1739,27 @@ html.mobile-ui .mobile-toggle {
     width: 48px !important;
     height: 48px !important;
 }
+
+
+/* ===== شاشة الدخول: تصغير ليظهر حقل كلمة المرور كاملاً على الموبايل + صورة المعلم ===== */
+#splash-teacher-photo {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 1rem;
+    border-radius: 28px;
+    object-fit: cover;
+    box-shadow: 0 10px 28px rgba(16, 32, 51, 0.22);
+    position: relative;
+}
+.splash-overlay { overflow-y: auto; }
+.splash-content { height: auto; min-height: 100%; }
+@media (max-width: 700px), (max-height: 820px) {
+    .splash-glass { padding: 1.4rem 1.1rem; width: 92%; border-radius: 24px; margin: 12px auto; }
+    #splash-teacher-photo { width: 96px; height: 96px; border-radius: 22px; margin-bottom: 0.6rem; }
+    .splash-logo { font-size: 2.6rem; margin-bottom: 0.4rem !important; }
+    .splash-title { font-size: clamp(1.7rem, 8vw, 2.4rem); line-height: 1.25; }
+    .splash-subtitle { font-size: 1.05rem; margin-bottom: 1rem; }
+    #password-screen > p { margin-bottom: 0.9rem !important; font-size: 1rem !important; }
+    #password-screen > div { margin-bottom: 1rem !important; }
+    #app-password-input { width: min(280px, 78vw) !important; height: 56px !important; font-size: 1.6rem !important; }
+}
