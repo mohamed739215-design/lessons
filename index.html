@@ -88,11 +88,14 @@
         <div class="splash-background"></div>
         <div class="splash-content">
             <div class="splash-glass">
+                <img id="splash-teacher-photo" src="teacher.jpg" alt="" style="display:none;"
+                    onload="this.style.display='block'; var l=document.querySelector('#app-splash .splash-logo'); if(l) l.style.display='none';"
+                    onerror="this.style.display='none'">
                 <div class="splash-logo" style="margin-bottom: 1.5rem;">
                     <i class="fas fa-university"></i>
                 </div>
                 <h1 class="splash-title program-name-display">نظام إدارة الدروس</h1>
-                <p class="splash-subtitle">نظام الإدارة المتكامل</p>
+                <p class="splash-subtitle">طريقك للتفوق</p>
 
                 <div id="password-screen">
                     <p style="color: var(--text-muted); margin-bottom: 2rem; font-size: 1.1rem;">يرجى إدخال كلمة المرور للمتابعة</p>
