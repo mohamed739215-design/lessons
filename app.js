@@ -6337,21 +6337,22 @@ function openSmartCard(studentId, autoCloseMs = 0) {
     if (!container) return;
 
     const _cs = getCycleSessionStats(s);
+    try { const _h = document.querySelector('#smart-card-modal .modal-content > div:first-child h3'); if (_h) _h.textContent = s.name; } catch (e) {}
     // بطاقات وأزرار بسيطة (بدون صنف .card لتفادي الحشوة الكبيرة والشريط العلوي)
     const _chip = (label, value, color) => `
-        <div style="min-width: 0; padding: 0.35rem 0.3rem; border: 2px solid ${color}; border-radius: 14px; background: #fff;">
+        <div style="min-width: 0; padding: 0.3rem 0.3rem; border: 2px solid ${color}; border-radius: 14px; background: #fff;">
             <div style="font-size: 0.7rem; color: var(--text-muted); white-space: nowrap;">${label}</div>
             <div style="font-weight: 700; font-size: 0.88rem; color: ${color}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${value}</div>
         </div>`;
     const _tile = (bg, shadow, icon, top, name, title, click) => `
-        <button class="btn" title="${title}" style="min-width: 0; height: 70px; border-radius: 18px; background: ${bg}; color: #fff; display: flex; align-items: center; gap: 6px; padding: 0 8px; text-align: right; box-shadow: 0 8px 16px -8px ${shadow};"
+        <button class="btn" title="${title}" style="min-width: 0; height: 62px; border-radius: 18px; background: ${bg}; color: #fff; display: flex; align-items: center; gap: 6px; padding: 0 8px; text-align: right; box-shadow: 0 8px 16px -8px ${shadow};"
             onclick="${click}">
-            <span style="width: 36px; height: 36px; flex: 0 0 36px; border-radius: 50%; background: rgba(255,255,255,0.22); display: flex; align-items: center; justify-content: center; font-size: 1.05rem;"><i class="fas ${icon}"></i></span>
+            <span style="width: 34px; height: 34px; flex: 0 0 34px; border-radius: 50%; background: rgba(255,255,255,0.22); display: flex; align-items: center; justify-content: center; font-size: 1rem;"><i class="fas ${icon}"></i></span>
             <span style="flex: 1; min-width: 0; line-height: 1.25; font-weight: 800; font-size: 0.88rem;"><span style="display: block; font-size: 0.7rem; font-weight: 700; opacity: 0.95;">${top}</span>${name}</span>
             <i class="fas fa-chevron-left" style="font-size: 0.7rem; opacity: 0.8;"></i>
         </button>`;
     const _row = (bg, border, color, icon, label, title, click) => `
-        <button class="btn" title="${title}" style="width: 100%; min-width: 0; height: 44px; border-radius: 16px; background: ${bg}; border: 1px solid ${border}; color: ${color}; display: flex; align-items: center; gap: 8px; padding: 0 12px; font-weight: 700; font-size: 0.92rem;"
+        <button class="btn" title="${title}" style="width: 100%; min-width: 0; height: 40px; border-radius: 16px; background: ${bg}; border: 1px solid ${border}; color: ${color}; display: flex; align-items: center; gap: 8px; padding: 0 12px; font-weight: 700; font-size: 0.92rem;"
             onclick="${click}">
             <i class="fas ${icon}" style="font-size: 1.1rem;"></i>
             <span style="flex: 1; min-width: 0; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${label}</span>
@@ -6360,7 +6361,6 @@ function openSmartCard(studentId, autoCloseMs = 0) {
 
     container.innerHTML = `
         <div style="text-align: center; padding: 0.1rem; direction: rtl; overflow-x: hidden;">
-            <h2 style="margin: 0 0 0.3rem; font-size: 1.15rem; color: var(--text-main);">${s.name}</h2>
             <div style="display: flex; justify-content: center; flex-wrap: wrap; gap: 6px; margin-bottom: 0.55rem;">
                 <span class="status-badge" style="background: var(--bg-light); font-size: 0.68rem; direction: ltr; word-break: break-all;">${s.qrCode}</span>
                 <span class="status-badge" style="background: #fef3c7; color: #92400e; font-size: 0.78rem;">${s.points || 0} 💎</span>
@@ -6379,14 +6379,14 @@ function openSmartCard(studentId, autoCloseMs = 0) {
                         <span style="width: 34px; height: 34px; flex: 0 0 34px; border-radius: 50%; background: #ede9fe; color: #7c3aed; display: flex; align-items: center; justify-content: center; font-size: 0.95rem;"><i class="fas fa-calendar-days"></i></span>
                         <span style="text-align: right; line-height: 1.15; white-space: nowrap;">
                             <small style="display: block; color: var(--text-muted); font-size: 0.7rem; font-weight: 700;">الحصة الحالية</small>
-                            <b style="font-size: 1.35rem; color: #2563eb; font-weight: 800;">${_cs.sessionNo}</b><span style="font-size: 0.78rem; color: var(--text-muted); font-weight: 700;"> من ${_cs.total}</span>
+                            <b style="font-size: 1.5rem; color: #2563eb; font-weight: 800;">${_cs.sessionNo}</b><span style="font-size: 0.78rem; color: var(--text-muted); font-weight: 700;"> من ${_cs.total}</span>
                         </span>
                     </div>
                     <div style="flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center; gap: 6px;">
                         <span style="width: 34px; height: 34px; flex: 0 0 34px; border-radius: 50%; background: #e0f2fe; color: #0284c7; display: flex; align-items: center; justify-content: center; font-size: 0.95rem;"><i class="fas fa-calendar-check"></i></span>
                         <span style="text-align: right; line-height: 1.15; white-space: nowrap;">
                             <small style="display: block; color: var(--text-muted); font-size: 0.7rem; font-weight: 700;">حضرها الطالب</small>
-                            <b style="font-size: 1.35rem; color: #16a34a; font-weight: 800;">${_cs.attended}</b><span style="font-size: 0.78rem; color: var(--text-muted); font-weight: 700;"> من ${_cs.total}</span>
+                            <b style="font-size: 1.5rem; color: #16a34a; font-weight: 800;">${_cs.attended}</b><span style="font-size: 0.78rem; color: var(--text-muted); font-weight: 700;"> من ${_cs.total}</span>
                         </span>
                     </div>
                 </div>
@@ -6395,7 +6395,7 @@ function openSmartCard(studentId, autoCloseMs = 0) {
 
             <!-- Quick Action Buttons -->
             <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 0.6rem;">
-                <button class="btn btn-primary" style="width: 100%; min-width: 0; height: 52px; border-radius: 18px; background: linear-gradient(135deg, #15803d, #22c55e); color: #fff; display: flex; align-items: center; gap: 10px; padding: 0 12px; font-size: 1.05rem; font-weight: 800; box-shadow: 0 10px 18px -8px rgba(22,163,74,0.55);"
+                <button class="btn btn-primary" style="width: 100%; min-width: 0; height: 48px; border-radius: 18px; background: linear-gradient(135deg, #15803d, #22c55e); color: #fff; display: flex; align-items: center; gap: 10px; padding: 0 12px; font-size: 1.05rem; font-weight: 800; box-shadow: 0 10px 18px -8px rgba(22,163,74,0.55);"
                     onclick="recordQuickAction(${s.id}, 'attendance'); openSmartCard(${s.id});">
                     <span style="width: 34px; height: 34px; flex: 0 0 34px; border-radius: 50%; background: rgba(255,255,255,0.22); display: flex; align-items: center; justify-content: center;"><i class="fas fa-user-check"></i></span>
                     <span style="flex: 1; text-align: center;">تسجيل حضور</span>
@@ -6413,7 +6413,7 @@ function openSmartCard(studentId, autoCloseMs = 0) {
                 ` : ''}
             </div>
 
-            <button class="btn" style="width: 100%; min-width: 0; height: 44px; background: var(--bg-light); border-radius: 16px; border: 1px solid var(--border); display: flex; align-items: center; gap: 8px; padding: 0 12px; font-weight: 700;" 
+            <button class="btn" style="width: 100%; min-width: 0; height: 42px; background: var(--bg-light); border-radius: 16px; border: 1px solid var(--border); display: flex; align-items: center; gap: 8px; padding: 0 12px; font-weight: 700;" 
                 onclick="toggleModal('smart-card-modal', false)">
                 <i class="fas fa-right-from-bracket" style="color: #2563eb; font-size: 1.1rem;"></i>
                 <span style="flex: 1; text-align: center;">إغلاق النافذة</span>
