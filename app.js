@@ -6164,7 +6164,7 @@ function processScan(token) {
 
     // Voice Feedback
     playSound('success');
-    speakName(student.name);
+    speakNameAndGroup(student);
 }
 
 function searchStudentSmart(query) {
@@ -6249,6 +6249,33 @@ function searchStudentSmart(query) {
 }
 
 let smartCardAutoCloseTimer = null;
+
+// اسم مجموعة الطالب (للقراءة فقط)
+function getStudentGroupName(student) {
+    try {
+        const g = (db.groups || []).find(x => String(x.id) === String(student && student.groupId));
+        return g && g.name ? String(g.name) : '';
+    } catch (e) { return ''; }
+}
+
+// نطق اسم الطالب أولاً ثم مباشرة اسم مجموعته
+function speakNameAndGroup(student) {
+    try {
+        if (!document.getElementById('voice-feedback-toggle').checked) return;
+        const say = (text) => {
+            const msg = new SpeechSynthesisUtterance();
+            msg.text = text;
+            msg.lang = 'ar-SA';
+            msg.rate = 0.9;
+            window.speechSynthesis.speak(msg);
+        };
+        say(student.name);
+        const gname = getStudentGroupName(student);
+        if (gname) say(gname);
+    } catch (e) {
+        speakName(student.name);
+    }
+}
 
 // ── إحصاء حصص الدورة النشطة (للقراءة فقط — لا يعدّل أي بيانات) ──
 const CYCLE_SESSIONS_TOTAL = 8;
@@ -6337,7 +6364,17 @@ function openSmartCard(studentId, autoCloseMs = 0) {
     if (!container) return;
 
     const _cs = getCycleSessionStats(s);
-    try { const _h = document.querySelector('#smart-card-modal .modal-content > div:first-child h3'); if (_h) _h.textContent = s.name; } catch (e) {}
+    try {
+        const _h = document.querySelector('#smart-card-modal .modal-content > div:first-child h3');
+        if (_h) {
+            _h.textContent = s.name;
+            let _g = document.getElementById('smart-card-group');
+            if (!_g) { _g = document.createElement('div'); _g.id = 'smart-card-group'; _h.parentNode.insertBefore(_g, _h.nextSibling); }
+            _g.textContent = '';
+            const _gn = document.createElement('span'); _gn.textContent = getStudentGroupName(s); _g.appendChild(_gn);
+            const _pt = document.createElement('span'); _pt.className = 'smart-card-points'; _pt.textContent = '💎 ' + (s.points || 0); _g.appendChild(_pt);
+        }
+    } catch (e) {}
     // بطاقات وأزرار بسيطة (بدون صنف .card لتفادي الحشوة الكبيرة والشريط العلوي)
     const _chip = (label, value, color) => `
         <div style="min-width: 0; padding: 0.3rem 0.3rem; border: 2px solid ${color}; border-radius: 14px; background: #fff;">
@@ -6361,10 +6398,6 @@ function openSmartCard(studentId, autoCloseMs = 0) {
 
     container.innerHTML = `
         <div style="text-align: center; padding: 0.1rem; direction: rtl; overflow-x: hidden;">
-            <div style="display: flex; justify-content: center; flex-wrap: wrap; gap: 6px; margin-bottom: 0.55rem;">
-                <span class="status-badge" style="background: var(--bg-light); font-size: 0.68rem; direction: ltr; word-break: break-all;">${s.qrCode}</span>
-                <span class="status-badge" style="background: #fef3c7; color: #92400e; font-size: 0.78rem;">${s.points || 0} 💎</span>
-            </div>
 
             <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0.5rem; margin-bottom: 0.55rem;">
                 ${_chip('الحصة السابقة', finalStatus ? (finalStatus === 'present' ? 'حضور ✅' : 'غياب ❌') : 'أول حضور', finalStatus === 'absent' ? '#dc2626' : '#16a34a')}
@@ -6522,7 +6555,7 @@ function recordQuickAction(studentId, action) {
 
             if (action === 'attendance') {
                 playSound('success');
-                speakName(s.name);
+                speakNameAndGroup(s);
             }
         }
     }

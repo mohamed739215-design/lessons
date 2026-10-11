@@ -1789,3 +1789,36 @@ html.mobile-ui .mobile-toggle {
     flex: 1 1 auto;
     min-height: 0;
 }
+
+
+/* ===== البطاقة الذكية: الاسم بالكحلي + اسم المجموعة تحته (شريط علوي أبيض) ===== */
+#smart-card-modal .modal-content > div:first-child {
+    background: #ffffff !important;
+    color: #0f2a5c !important;
+    border-bottom: 1px solid var(--border);
+    padding: 0.5rem 3rem 0.45rem !important;
+}
+#smart-card-modal .modal-content > div:first-child h3 {
+    color: #0f2a5c !important;
+    font-size: 1.3rem;
+    font-weight: 800;
+}
+#smart-card-modal .modal-close-btn { color: #0f2a5c !important; }
+#smart-card-group {
+    margin-top: 2px;
+    color: #475569;
+    font-size: 0.98rem;
+    font-weight: 700;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+#smart-card-group .smart-card-points {
+    background: #fef3c7;
+    color: #92400e;
+    border-radius: 999px;
+    padding: 1px 9px;
+    font-size: 0.8rem;
+}
