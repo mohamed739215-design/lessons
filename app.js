@@ -6337,75 +6337,71 @@ function openSmartCard(studentId, autoCloseMs = 0) {
     if (!container) return;
 
     const _cs = getCycleSessionStats(s);
-    // أزرار مصمَّمة بنفس الشكل: أيقونة دائرية يميناً + نص + سهم يساراً (التصميم المعتمد)
+    // بطاقات وأزرار بسيطة (بدون صنف .card لتفادي الحشوة الكبيرة والشريط العلوي)
+    const _chip = (label, value, color) => `
+        <div style="min-width: 0; padding: 0.35rem 0.3rem; border: 2px solid ${color}; border-radius: 14px; background: #fff;">
+            <div style="font-size: 0.7rem; color: var(--text-muted); white-space: nowrap;">${label}</div>
+            <div style="font-weight: 700; font-size: 0.88rem; color: ${color}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${value}</div>
+        </div>`;
     const _tile = (bg, shadow, icon, top, name, title, click) => `
-        <button class="btn" title="${title}" style="height: 76px; border-radius: 20px; background: ${bg}; color: #fff; display: flex; align-items: center; gap: 8px; padding: 0 10px; text-align: right; box-shadow: 0 8px 18px -8px ${shadow};"
+        <button class="btn" title="${title}" style="min-width: 0; height: 70px; border-radius: 18px; background: ${bg}; color: #fff; display: flex; align-items: center; gap: 6px; padding: 0 8px; text-align: right; box-shadow: 0 8px 16px -8px ${shadow};"
             onclick="${click}">
-            <span style="width: 42px; height: 42px; flex: 0 0 42px; border-radius: 50%; background: rgba(255,255,255,0.22); display: flex; align-items: center; justify-content: center; font-size: 1.2rem;"><i class="fas ${icon}"></i></span>
-            <span style="flex: 1; line-height: 1.25; font-weight: 800; font-size: 0.95rem;"><span style="display: block; font-size: 0.78rem; font-weight: 700; opacity: 0.95;">${top}</span>${name}</span>
-            <i class="fas fa-chevron-left" style="font-size: 0.75rem; opacity: 0.8;"></i>
+            <span style="width: 36px; height: 36px; flex: 0 0 36px; border-radius: 50%; background: rgba(255,255,255,0.22); display: flex; align-items: center; justify-content: center; font-size: 1.05rem;"><i class="fas ${icon}"></i></span>
+            <span style="flex: 1; min-width: 0; line-height: 1.25; font-weight: 800; font-size: 0.88rem;"><span style="display: block; font-size: 0.7rem; font-weight: 700; opacity: 0.95;">${top}</span>${name}</span>
+            <i class="fas fa-chevron-left" style="font-size: 0.7rem; opacity: 0.8;"></i>
         </button>`;
     const _row = (bg, border, color, icon, label, title, click) => `
-        <button class="btn" title="${title}" style="width: 100%; height: 48px; border-radius: 18px; background: ${bg}; border: 1px solid ${border}; color: ${color}; display: flex; align-items: center; gap: 8px; padding: 0 12px; font-weight: 700; font-size: 0.95rem;"
+        <button class="btn" title="${title}" style="width: 100%; min-width: 0; height: 44px; border-radius: 16px; background: ${bg}; border: 1px solid ${border}; color: ${color}; display: flex; align-items: center; gap: 8px; padding: 0 12px; font-weight: 700; font-size: 0.92rem;"
             onclick="${click}">
-            <i class="fas ${icon}" style="font-size: 1.15rem;"></i>
-            <span style="flex: 1; text-align: center;">${label}</span>
-            <i class="fas fa-chevron-left" style="font-size: 0.75rem; opacity: 0.6;"></i>
+            <i class="fas ${icon}" style="font-size: 1.1rem;"></i>
+            <span style="flex: 1; min-width: 0; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${label}</span>
+            <i class="fas fa-chevron-left" style="font-size: 0.7rem; opacity: 0.6;"></i>
         </button>`;
 
     container.innerHTML = `
-        <div style="text-align: center; padding: 0.2rem; direction: rtl;">
-            <div class="avatar" style="width: 52px; height: 52px; font-size: 1.6rem; margin: 0 auto 0.35rem; background: var(--bg-hover); color: var(--accent); border: 2px solid var(--accent);">
-                ${s.name.charAt(0)}
-            </div> 
+        <div style="text-align: center; padding: 0.1rem; direction: rtl; overflow-x: hidden;">
             <h2 style="margin: 0 0 0.3rem; font-size: 1.15rem; color: var(--text-main);">${s.name}</h2>
-            <div style="display:flex; justify-content:center; flex-wrap:wrap; gap:6px; margin-bottom:0.6rem;">
-                <span class="status-badge" style="background:var(--bg-light); font-size:0.7rem; direction:ltr; word-break:break-all;">${s.qrCode}</span>
-                <span class="status-badge" style="background:#fef3c7; color:#92400e; font-size:0.78rem;">${s.points || 0} 💎</span>
+            <div style="display: flex; justify-content: center; flex-wrap: wrap; gap: 6px; margin-bottom: 0.55rem;">
+                <span class="status-badge" style="background: var(--bg-light); font-size: 0.68rem; direction: ltr; word-break: break-all;">${s.qrCode}</span>
+                <span class="status-badge" style="background: #fef3c7; color: #92400e; font-size: 0.78rem;">${s.points || 0} 💎</span>
             </div>
 
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.6rem;">
-                <div class="card" style="padding:0.4rem 0.3rem; border:2px solid ${finalStatus === 'absent' ? 'var(--danger)' : 'var(--accent)'};">
-                    <small style="color:var(--text-muted); font-size:0.7rem;">الحصة السابقة</small>
-                    <div style="font-weight:700; font-size:0.9rem; color:${finalStatus === 'absent' ? 'var(--danger)' : 'var(--accent)'}">${finalStatus ? (finalStatus === 'present' ? 'حضور ✅' : 'غياب ❌') : 'أول حضور'}</div>
-                </div>
-                <div class="card" style="padding:0.4rem 0.3rem; border:2px solid ${isPaid ? (isExemption ? 'var(--border)' : 'var(--accent)') : 'var(--danger)'};">
-                    <small style="color:var(--text-muted); font-size:0.7rem;">اشتراك الشهر</small>
-                    <div style="font-weight:700; font-size:0.9rem; color:${isPaid ? (isExemption ? 'var(--text-muted)' : 'var(--accent)') : 'var(--danger)'}">${isPaid ? (isExemption ? 'معفي ✅' : 'خالص ✅') : 'غير خالص ⏳'}</div>
-                </div>
+            <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0.5rem; margin-bottom: 0.55rem;">
+                ${_chip('الحصة السابقة', finalStatus ? (finalStatus === 'present' ? 'حضور ✅' : 'غياب ❌') : 'أول حضور', finalStatus === 'absent' ? '#dc2626' : '#16a34a')}
+                ${_chip('اشتراك الشهر', isPaid ? (isExemption ? 'معفي ✅' : 'خالص ✅') : 'غير خالص ⏳', isPaid ? (isExemption ? '#64748b' : '#16a34a') : '#dc2626')}
             </div>
 
             ${_cs ? `
-            <div class="card" style="padding: 0; margin-bottom: 0.7rem; overflow: hidden; border-radius: 20px; box-shadow: 0 8px 22px -10px rgba(37,99,235,0.35);">
+            <div style="margin-bottom: 0.6rem; overflow: hidden; border-radius: 20px; background: #fff; border: 1px solid var(--border); box-shadow: 0 8px 20px -10px rgba(37,99,235,0.35);">
                 <div style="height: 4px; background: linear-gradient(90deg, #2563eb, #06b6d4, #a855f7);"></div>
-                <div style="display: flex; align-items: center; padding: 0.6rem 0.4rem;">
-                    <div style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; border-left: 1px solid var(--border);">
-                        <span style="width: 40px; height: 40px; flex: 0 0 40px; border-radius: 50%; background: #ede9fe; color: #7c3aed; display: flex; align-items: center; justify-content: center; font-size: 1.05rem;"><i class="fas fa-calendar-days"></i></span>
-                        <span style="text-align: right; line-height: 1.2;">
-                            <small style="display: block; color: var(--text-muted); font-size: 0.72rem; font-weight: 700;">الحصة الحالية</small>
-                            <b style="font-size: 1.5rem; color: #2563eb; font-weight: 800;">${_cs.sessionNo}</b><span style="font-size: 0.82rem; color: var(--text-muted); font-weight: 700;"> من ${_cs.total}</span>
+                <div style="display: flex; align-items: center; padding: 0.45rem 0.2rem;">
+                    <div style="flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center; gap: 6px; border-left: 1px solid var(--border);">
+                        <span style="width: 34px; height: 34px; flex: 0 0 34px; border-radius: 50%; background: #ede9fe; color: #7c3aed; display: flex; align-items: center; justify-content: center; font-size: 0.95rem;"><i class="fas fa-calendar-days"></i></span>
+                        <span style="text-align: right; line-height: 1.15; white-space: nowrap;">
+                            <small style="display: block; color: var(--text-muted); font-size: 0.7rem; font-weight: 700;">الحصة الحالية</small>
+                            <b style="font-size: 1.35rem; color: #2563eb; font-weight: 800;">${_cs.sessionNo}</b><span style="font-size: 0.78rem; color: var(--text-muted); font-weight: 700;"> من ${_cs.total}</span>
                         </span>
                     </div>
-                    <div style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                        <span style="width: 40px; height: 40px; flex: 0 0 40px; border-radius: 50%; background: #e0f2fe; color: #0284c7; display: flex; align-items: center; justify-content: center; font-size: 1.05rem;"><i class="fas fa-calendar-check"></i></span>
-                        <span style="text-align: right; line-height: 1.2;">
-                            <small style="display: block; color: var(--text-muted); font-size: 0.72rem; font-weight: 700;">حضرها الطالب</small>
-                            <b style="font-size: 1.5rem; color: #16a34a; font-weight: 800;">${_cs.attended}</b><span style="font-size: 0.82rem; color: var(--text-muted); font-weight: 700;"> من ${_cs.total}</span>
+                    <div style="flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                        <span style="width: 34px; height: 34px; flex: 0 0 34px; border-radius: 50%; background: #e0f2fe; color: #0284c7; display: flex; align-items: center; justify-content: center; font-size: 0.95rem;"><i class="fas fa-calendar-check"></i></span>
+                        <span style="text-align: right; line-height: 1.15; white-space: nowrap;">
+                            <small style="display: block; color: var(--text-muted); font-size: 0.7rem; font-weight: 700;">حضرها الطالب</small>
+                            <b style="font-size: 1.35rem; color: #16a34a; font-weight: 800;">${_cs.attended}</b><span style="font-size: 0.78rem; color: var(--text-muted); font-weight: 700;"> من ${_cs.total}</span>
                         </span>
                     </div>
                 </div>
-                ${_cs.completed ? '<div style="padding: 0 0.5rem 0.5rem; font-size: 0.75rem; font-weight: 700; color: var(--danger);">الشهر مكتمل — فعّل شهرًا جديدًا من الخزينة والمالية</div>' : ''}
+                ${_cs.completed ? '<div style="padding: 0 0.5rem 0.45rem; font-size: 0.72rem; font-weight: 700; color: #dc2626;">الشهر مكتمل — فعّل شهرًا جديدًا من الخزينة والمالية</div>' : ''}
             </div>` : ''}
 
             <!-- Quick Action Buttons -->
-            <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 0.7rem;">
-                <button class="btn btn-primary" style="width: 100%; height: 56px; border-radius: 20px; background: linear-gradient(135deg, #15803d, #22c55e); color: #fff; display: flex; align-items: center; gap: 10px; padding: 0 12px; font-size: 1.1rem; font-weight: 800; box-shadow: 0 10px 20px -8px rgba(22,163,74,0.55);"
+            <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 0.6rem;">
+                <button class="btn btn-primary" style="width: 100%; min-width: 0; height: 52px; border-radius: 18px; background: linear-gradient(135deg, #15803d, #22c55e); color: #fff; display: flex; align-items: center; gap: 10px; padding: 0 12px; font-size: 1.05rem; font-weight: 800; box-shadow: 0 10px 18px -8px rgba(22,163,74,0.55);"
                     onclick="recordQuickAction(${s.id}, 'attendance'); openSmartCard(${s.id});">
-                    <span style="width: 38px; height: 38px; flex: 0 0 38px; border-radius: 50%; background: rgba(255,255,255,0.22); display: flex; align-items: center; justify-content: center;"><i class="fas fa-user-check"></i></span>
+                    <span style="width: 34px; height: 34px; flex: 0 0 34px; border-radius: 50%; background: rgba(255,255,255,0.22); display: flex; align-items: center; justify-content: center;"><i class="fas fa-user-check"></i></span>
                     <span style="flex: 1; text-align: center;">تسجيل حضور</span>
-                    <i class="fas fa-chevron-left" style="font-size: 0.8rem; opacity: 0.8;"></i>
+                    <i class="fas fa-chevron-left" style="font-size: 0.75rem; opacity: 0.8;"></i>
                 </button>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px;">
                     ${_tile('linear-gradient(135deg,#16a34a,#4ade80)', 'rgba(22,163,74,0.6)', 'fa-chalkboard-user', 'دفع', 'اشتراك الدرس', 'دفع اشتراك الدرس', `payLessonDirect(${s.id})`)}
                     ${_tile('linear-gradient(135deg,#1d4ed8,#3b82f6)', 'rgba(37,99,235,0.6)', 'fa-laptop-code', 'دفع', 'اشتراك المنصة', 'دفع اشتراك المنصة', `payPlatformDirect(${s.id})`)}
                     ${_tile('linear-gradient(135deg,#7c3aed,#db2777)', 'rgba(124,58,237,0.6)', 'fa-layer-group', 'دفع', 'الاشتراكين معًا', 'دفع الاشتراكين معاً', `payBothDirect(${s.id})`)}
@@ -6413,15 +6409,15 @@ function openSmartCard(studentId, autoCloseMs = 0) {
                 </div>
                 ${!isPaid ? `
                 ${_row('#f5f3ff', '#ddd6fe', '#6d28d9', 'fa-hand-holding-heart', 'إعفاء (يتيم / حالة خاصة)', 'عمل إعفاء لهذا الطالب (يتيم / حالة خاصة)', `exemptMonthlyPayment(${s.id}); openSmartCard(${s.id});`)}
-                ${_row('#fff7ed', '#fed7aa', '#ea580c', 'fa-tags', 'خصم على الاشتراك (جزئي)', 'عمل خصم على الاشتراك (جزئي)', `discountMonthlyPayment(${s.id}); openSmartCard(${s.id});`)}
+                ${_row('#fff7ed', '#fed7aa', '#ea580c', 'fa-tags', 'خصم جزئي', 'عمل خصم على الاشتراك (جزئي)', `discountMonthlyPayment(${s.id}); openSmartCard(${s.id});`)}
                 ` : ''}
             </div>
 
-            <button class="btn" style="width: 100%; height: 46px; background: var(--bg-light); border-radius: 18px; border: 1px solid var(--border); display: flex; align-items: center; gap: 8px; padding: 0 12px; font-weight: 700;" 
+            <button class="btn" style="width: 100%; min-width: 0; height: 44px; background: var(--bg-light); border-radius: 16px; border: 1px solid var(--border); display: flex; align-items: center; gap: 8px; padding: 0 12px; font-weight: 700;" 
                 onclick="toggleModal('smart-card-modal', false)">
                 <i class="fas fa-right-from-bracket" style="color: #2563eb; font-size: 1.1rem;"></i>
                 <span style="flex: 1; text-align: center;">إغلاق النافذة</span>
-                <i class="fas fa-chevron-left" style="font-size: 0.75rem; opacity: 0.6;"></i>
+                <i class="fas fa-chevron-left" style="font-size: 0.7rem; opacity: 0.6;"></i>
             </button>
         </div>
     `;
